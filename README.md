@@ -18,6 +18,7 @@ Designed to run smoothly on desktop and mobile, and fully compatible with GitHub
 
 ## 🚀 Live Demo
 If hosted on GitHub Pages, your link will look like:
+https://bmehr.github.io/Draw3d/
 
 
 # Draw3d
