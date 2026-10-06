@@ -6,6 +6,9 @@ let brushSize = 0.15;
 let brushColor = "#ff0000";
 let strokes = [];
 
+let drawMode = false;   // NEW: draw mode toggle
+let isDrawing = false;
+
 const canvas = document.getElementById("drawCanvas");
 
 init();
@@ -15,10 +18,18 @@ function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf0f0f0);
 
-    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+    );
     camera.position.set(3, 3, 3);
 
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true
+    });
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     controls = new OrbitControls(camera, renderer.domElement);
@@ -30,7 +41,7 @@ function init() {
 
     window.addEventListener("resize", onResize);
 
-    // UI
+    // UI controls
     document.getElementById("brushSize").addEventListener("input", e => {
         brushSize = parseFloat(e.target.value);
     });
@@ -42,21 +53,30 @@ function init() {
     document.getElementById("undoBtn").addEventListener("click", undoStroke);
     document.getElementById("clearBtn").addEventListener("click", clearCanvas);
 
+    // NEW: Draw mode toggle
+    document.getElementById("toggleDrawBtn").addEventListener("click", () => {
+        drawMode = !drawMode;
+
+        document.getElementById("toggleDrawBtn").innerText =
+            drawMode ? "Draw Mode: On" : "Draw Mode: Off";
+
+        controls.enabled = !drawMode;  // disable orbit controls while drawing
+    });
+
     // Drawing events
     renderer.domElement.addEventListener("pointerdown", startDrawing);
     renderer.domElement.addEventListener("pointermove", draw);
     renderer.domElement.addEventListener("pointerup", stopDrawing);
 }
 
-let isDrawing = false;
-
 function startDrawing(e) {
+    if (!drawMode) return;
     isDrawing = true;
     addPoint(e);
 }
 
 function draw(e) {
-    if (!isDrawing) return;
+    if (!drawMode || !isDrawing) return;
     addPoint(e);
 }
 
@@ -73,6 +93,7 @@ function addPoint(e) {
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, camera);
 
+    // Project point 3 units out from camera
     const point = raycaster.ray.at(3, new THREE.Vector3());
 
     const geometry = new THREE.SphereGeometry(brushSize, 16, 16);
